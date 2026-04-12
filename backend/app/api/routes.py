@@ -4,12 +4,20 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import Session
 
 from app.db.session import get_session
-from app.schemas.creator import BrandDealResponse, ContentItemResponse, CreatorDetailResponse, CreatorQueryResponse
+from app.schemas.creator import (
+    BrandDealResponse,
+    ContentItemResponse,
+    CreatorDetailResponse,
+    CreatorQueryResponse,
+    OpportunityQueryResponse,
+    OpportunitySummaryResponse,
+)
 from app.schemas.methodology import MethodologyResponse
 from app.schemas.portfolio import BrandDealVerificationRequest, InvestmentCreateRequest, PortfolioResponse
 from app.services.brand_deals import extract_brand_deals
 from app.services.creators import get_creator_detail, list_creators
 from app.services.methodology import get_methodology
+from app.services.opportunities import get_opportunity, list_opportunities
 from app.services.portfolio import get_portfolio
 from app.models.entities import BrandDeal, ContentItem, Creator, Investment
 from sqlmodel import select
@@ -33,6 +41,32 @@ def creators(
     session: Session = Depends(get_session),
 ) -> CreatorQueryResponse:
     return list_creators(session, search, category, platform, sort)
+
+
+@router.get("/opportunities", response_model=OpportunityQueryResponse)
+def opportunities(
+    search: str | None = Query(default=None),
+    category: str | None = Query(default=None),
+    instrument_type: str | None = Query(default=None),
+    sort: str = Query(default="capital_raised"),
+    session: Session = Depends(get_session),
+) -> OpportunityQueryResponse:
+    items = [
+        OpportunitySummaryResponse(**item.__dict__)
+        for item in list_opportunities(session, search, category, instrument_type, sort)
+    ]
+    return OpportunityQueryResponse(items=items)
+
+
+@router.get("/opportunities/{opportunity_id}", response_model=OpportunitySummaryResponse)
+def opportunity_detail(
+    opportunity_id: str,
+    session: Session = Depends(get_session),
+) -> OpportunitySummaryResponse:
+    opportunity = get_opportunity(session, opportunity_id)
+    if opportunity is None:
+        raise HTTPException(status_code=404, detail="Opportunity not found")
+    return OpportunitySummaryResponse(**opportunity.__dict__)
 
 
 @router.get("/creators/{slug}", response_model=CreatorDetailResponse)
@@ -103,14 +137,31 @@ def create_investment(
     payload: InvestmentCreateRequest,
     session: Session = Depends(get_session),
 ) -> PortfolioResponse:
-    if payload.amount not in {10, 25, 50, 100}:
+    if payload.amount < 5 or payload.amount > 10000:
         raise HTTPException(status_code=400, detail="Invalid investment amount")
-    creator = session.get(Creator, payload.creator_id)
-    if creator is None:
-        raise HTTPException(status_code=404, detail="Creator not found")
-    session.add(Investment(user_id=DEMO_USER_ID, creator_id=payload.creator_id, amount=payload.amount))
+    opportunity = get_opportunity(session, payload.opportunity_id)
+    if opportunity is None:
+        raise HTTPException(status_code=404, detail="Opportunity not found")
+    amount = round(payload.amount, 2)
+    amount_returned = round(amount * opportunity.payouts_to_date_ratio, 2)
+    expected_total_payout = round(amount * opportunity.expected_total_multiple, 2)
+    projected_remaining_payout = round(expected_total_payout - amount_returned, 2)
+    session.add(
+        Investment(
+            user_id=DEMO_USER_ID,
+            creator_id=opportunity.creator_id,
+            opportunity_id=opportunity.id,
+            instrument_type=opportunity.instrument_type,
+            opportunity_name=opportunity.title,
+            amount=amount,
+            amount_returned=amount_returned,
+            projected_remaining_payout=projected_remaining_payout,
+            expected_total_payout=expected_total_payout,
+            status=opportunity.status,
+        )
+    )
     session.commit()
-    logger.info("created investment creator_id=%s amount=%s", payload.creator_id, payload.amount)
+    logger.info("created investment opportunity_id=%s amount=%s", payload.opportunity_id, payload.amount)
     return get_portfolio(session, DEMO_USER_ID)
 
 

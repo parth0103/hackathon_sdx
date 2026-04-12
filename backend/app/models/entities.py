@@ -75,5 +75,12 @@ class Investment(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(index=True, foreign_key="user.id")
     creator_id: int = Field(index=True, foreign_key="creator.id")
-    amount: int
+    opportunity_id: str = Field(index=True)
+    instrument_type: str
+    opportunity_name: str
+    amount: float
+    amount_returned: float
+    projected_remaining_payout: float
+    expected_total_payout: float
+    status: str
     created_at: datetime = Field(default_factory=datetime.utcnow)

@@ -20,8 +20,3 @@ app.add_middleware(
 
 app.include_router(router, prefix="/api")
 initialize_database()
-
-
-@app.on_event("startup")
-def on_startup() -> None:
-    initialize_database()

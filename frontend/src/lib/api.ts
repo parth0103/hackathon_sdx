@@ -2,6 +2,8 @@ import type {
   CreatorDetail,
   CreatorsResponse,
   Methodology,
+  OpportunitiesResponse,
+  Opportunity,
   Portfolio,
 } from "../types/api";
 
@@ -19,21 +21,29 @@ export function getCreators(params: URLSearchParams): Promise<CreatorsResponse> 
   return request<CreatorsResponse>(`/creators?${params.toString()}`);
 }
 
+export function getOpportunities(params: URLSearchParams): Promise<OpportunitiesResponse> {
+  return request<OpportunitiesResponse>(`/opportunities?${params.toString()}`);
+}
+
 export function getCreator(slug: string): Promise<CreatorDetail> {
   return request<CreatorDetail>(`/creators/${slug}`);
+}
+
+export function getOpportunity(opportunityId: string): Promise<Opportunity> {
+  return request<Opportunity>(`/opportunities/${opportunityId}`);
 }
 
 export function getPortfolio(): Promise<Portfolio> {
   return request<Portfolio>("/portfolio");
 }
 
-export function createInvestment(creatorId: number, amount: number): Promise<Portfolio> {
+export function createInvestment(opportunityId: string, amount: number): Promise<Portfolio> {
   return request<Portfolio>("/investments", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ creator_id: creatorId, amount }),
+    body: JSON.stringify({ opportunity_id: opportunityId, amount }),
   });
 }
 

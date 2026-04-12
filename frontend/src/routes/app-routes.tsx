@@ -1,7 +1,6 @@
 import { createBrowserRouter } from "react-router-dom";
 
 import { AppShell } from "../components/app-shell";
-import { ComparePage } from "../pages/compare-page";
 import { CreatorPage } from "../pages/creator-page";
 import { DiscoveryPage } from "../pages/discovery-page";
 import { LandingPage } from "../pages/landing-page";
@@ -16,7 +15,6 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <LandingPage /> },
       { path: "discover", element: <DiscoveryPage /> },
-      { path: "compare", element: <ComparePage /> },
       { path: "creators/:slug", element: <CreatorPage /> },
       { path: "watchlist", element: <WatchlistPage /> },
       { path: "portfolio", element: <PortfolioPage /> },

@@ -7,7 +7,7 @@ from app.schemas.methodology import (
 
 def get_methodology() -> MethodologyResponse:
     return MethodologyResponse(
-        philosophy="We surface creator growth, engagement, and monetization signals with transparent formulas so users can make their own investment decisions.",
+        philosophy="We surface creator growth, engagement, and monetization signals with transparent formulas so users can evaluate revenue-share notes and project-finance rounds with confidence.",
         sections=[
             MethodologySectionResponse(
                 title="Sources",
@@ -29,6 +29,14 @@ def get_methodology() -> MethodologyResponse:
                 items=[
                     "Detected deals come from sponsorship heuristics across captions and titles.",
                     "Verified deals are reserved for creator-supplied records.",
+                ],
+            ),
+            MethodologySectionResponse(
+                title="Opportunity model",
+                items=[
+                    "Revenue-share notes map creator performance and monetization history into payout expectations.",
+                    "Project-finance rounds map a specific creator launch or campaign into milestone-based return expectations.",
+                    "Funding reflects how much capital is already committed to an opportunity.",
                 ],
             ),
             MethodologySectionResponse(
@@ -59,6 +67,11 @@ def get_methodology() -> MethodologyResponse:
                 name="Detected sponsored posts",
                 definition="Number of recent content items flagged as likely sponsored through phrase and brand matching.",
                 formula="count(detected sponsor content)",
+            ),
+            MethodologyMetricResponse(
+                name="Expected payout",
+                definition="Projected total amount returned from a revenue-share note or project-finance round over its modeled lifecycle.",
+                formula="invested amount * expected payout multiple",
             ),
         ],
     )

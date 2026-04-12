@@ -1,27 +1,49 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 
-import { CreatorCard } from "../components/creator-card";
 import { DataTable } from "../components/data-table";
+import { InfoTooltip } from "../components/info-tooltip";
+import { OpportunityCard } from "../components/opportunity-card";
+import { OpportunitySheet } from "../components/opportunity-sheet";
 import { SectionHeader } from "../components/section-header";
+import { TrendValue } from "../components/trend-value";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Select } from "../components/ui/select";
-import { getCreators } from "../lib/api";
-import { formatNumber, formatPercent } from "../lib/utils";
+import { getOpportunities } from "../lib/api";
+import { cn, formatNumber, formatPercent } from "../lib/utils";
+import type { Opportunity } from "../types/api";
 
-const categories = ["all", "fashion", "music", "education", "gaming", "podcasts", "fitness"];
-const platforms = ["all", "YouTube", "Instagram", "TikTok", "Newsletter", "Podcast"];
+const categories = ["all", "fashion", "music", "education", "gaming", "podcasts", "fitness", "beauty", "finance", "food", "sports", "film"];
+const instrumentTypes = ["all", "revenue_share", "project_finance"];
+const ITEMS_PER_PAGE = 10;
+
+function formatInstrumentType(value: string): string {
+  if (value === "all") {
+    return "All return models";
+  }
+  if (value === "revenue_share") {
+    return "Revenue share";
+  }
+  if (value === "project_finance") {
+    return "Project finance";
+  }
+  return value
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
 
 export function DiscoveryPage(): JSX.Element {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [compare, setCompare] = useState<string[]>([]);
+  const [selectedOpportunity, setSelectedOpportunity] = useState<Opportunity | null>(null);
   const search = searchParams.get("search") ?? "";
   const category = searchParams.get("category") ?? "all";
-  const platform = searchParams.get("platform") ?? "all";
-  const sort = searchParams.get("sort") ?? "growth_30d";
-  const view = searchParams.get("view") ?? "cards";
+  const instrumentType = searchParams.get("instrument_type") ?? "all";
+  const sort = searchParams.get("sort") ?? "capital_raised";
+  const view = searchParams.get("view") ?? "table";
+  const page = Math.max(1, Number(searchParams.get("page") ?? "1") || 1);
 
   const params = useMemo(() => {
     const query = new URLSearchParams({ sort });
@@ -31,115 +53,185 @@ export function DiscoveryPage(): JSX.Element {
     if (category !== "all") {
       query.set("category", category);
     }
-    if (platform !== "all") {
-      query.set("platform", platform);
+    if (instrumentType !== "all") {
+      query.set("instrument_type", instrumentType);
     }
     return query;
-  }, [category, platform, search, sort]);
+  }, [category, instrumentType, search, sort]);
 
   const query = useQuery({
-    queryKey: ["creators", params.toString()],
-    queryFn: () => getCreators(params),
+    queryKey: ["opportunities", params.toString()],
+    queryFn: () => getOpportunities(params),
   });
 
-  function updateParam(key: string, value: string): void {
+  const totalItems = query.data?.items.length ?? 0;
+  const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE));
+  const currentPage = Math.min(page, totalPages);
+  const paginatedItems = useMemo(() => {
+    const items = query.data?.items ?? [];
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return items.slice(start, start + ITEMS_PER_PAGE);
+  }, [currentPage, query.data?.items]);
+
+  function updateParam(key: string, value: string, resetPage = true): void {
     const next = new URLSearchParams(searchParams);
     if (value === "" || value === "all") {
       next.delete(key);
     } else {
       next.set(key, value);
     }
+    if (resetPage && key !== "page") {
+      next.delete("page");
+    }
     setSearchParams(next);
   }
 
-  function toggleCompare(slug: string): void {
-    setCompare((current) => {
-      if (current.includes(slug)) {
-        return current.filter((item) => item !== slug);
-      }
-      if (current.length === 2) {
-        return [current[1], slug];
-      }
-      return [...current, slug];
-    });
+  function changePage(nextPage: number): void {
+    const boundedPage = Math.max(1, Math.min(nextPage, totalPages));
+    updateParam("page", String(boundedPage), false);
   }
 
   return (
     <div className="space-y-8">
       <SectionHeader
         eyebrow="Discovery"
-        title="Browse creators as investable profiles"
-        description="Scan growth, engagement, and sponsor history before committing a simulated position."
+        title="Browse revenue-share notes and project finance rounds"
+        description="Scan exactly what you are funding, how payouts work, and what return range each opportunity targets."
       />
-      <div className="grid gap-3 rounded-2xl border border-border bg-panel/80 p-4 md:grid-cols-4">
-        <Input value={search} onChange={(event) => updateParam("search", event.target.value)} placeholder="Search creators" />
-        <Select value={category} onChange={(event) => updateParam("category", event.target.value)}>
+      <div className="rounded-2xl border border-border bg-panel/80 p-4">
+        <div className="flex flex-wrap gap-2">
           {categories.map((option) => (
-            <option key={option} value={option}>
+            <button
+              key={option}
+              className={cn(
+                "rounded-full border px-4 py-2 text-sm font-medium capitalize transition",
+                category === option
+                  ? "border-accent bg-accent text-black"
+                  : "border-border bg-black/10 text-muted hover:border-accent/40 hover:text-white",
+              )}
+              onClick={() => updateParam("category", option)}
+            >
               {option}
-            </option>
+            </button>
           ))}
-        </Select>
-        <Select value={platform} onChange={(event) => updateParam("platform", event.target.value)}>
-          {platforms.map((option) => (
+        </div>
+      </div>
+      <div className="grid gap-3 rounded-2xl border border-border bg-panel/80 p-4 md:grid-cols-3">
+        <Input value={search} onChange={(event) => updateParam("search", event.target.value)} placeholder="Search creators" />
+        <Select value={instrumentType} onChange={(event) => updateParam("instrument_type", event.target.value)}>
+          {instrumentTypes.map((option) => (
             <option key={option} value={option}>
-              {option}
+              {formatInstrumentType(option)}
             </option>
           ))}
         </Select>
         <Select value={sort} onChange={(event) => updateParam("sort", event.target.value)}>
-          <option value="growth_30d">Sort by 30d growth</option>
-          <option value="engagement_rate">Sort by engagement rate</option>
-          <option value="sponsored_activity">Sort by sponsor activity</option>
-          <option value="audience">Sort by audience</option>
+          <option value="expected_return">Sort by expected return</option>
+          <option value="funding_goal">Sort by funding goal</option>
+          <option value="capital_raised">Sort by capital raised</option>
         </Select>
       </div>
       <div className="flex items-center justify-between">
         <div className="flex gap-2">
-          <Button variant={view === "cards" ? "primary" : "secondary"} onClick={() => updateParam("view", "cards")}>
-            Card view
-          </Button>
           <Button variant={view === "table" ? "primary" : "secondary"} onClick={() => updateParam("view", "table")}>
             Table view
           </Button>
-        </div>
-        <Link to={`/compare?left=${compare[0] ?? ""}&right=${compare[1] ?? ""}`}>
-          <Button variant="secondary" disabled={compare.length !== 2}>
-            Compare selected
+          <Button variant={view === "cards" ? "primary" : "secondary"} onClick={() => updateParam("view", "cards")}>
+            Card view
           </Button>
-        </Link>
+        </div>
+        <Button variant="secondary" onClick={() => updateParam("sort", "expected_return")}>
+          How returns work
+        </Button>
       </div>
       {query.data?.items.length === 0 ? (
         <div className="rounded-2xl border border-border bg-panel p-6 text-sm text-muted">
-          No creators match the current filters.
+          No opportunities match the current filters.
         </div>
       ) : view === "table" ? (
         <DataTable
-          rows={query.data?.items ?? []}
+          rows={paginatedItems}
           columns={[
             {
-              header: "Compare",
+              key: "creator",
+              header: "Creator",
               render: (row) => (
-                <input
-                  type="checkbox"
-                  checked={compare.includes(row.slug)}
-                  onChange={() => toggleCompare(row.slug)}
+                <button className="text-left text-white hover:text-accent" onClick={() => setSelectedOpportunity(row)}>
+                  {row.creator_name}
+                </button>
+              ),
+            },
+            {
+              key: "expected_return",
+              header: (
+                <InfoTooltip
+                  label="Expected return"
+                  content="Expected return is the midpoint of the modeled return range. For revenue-share notes it reflects projected creator revenue and investor participation. For project-based return it reflects projected project revenue after cost recovery."
+                />
+              ),
+              render: (row) => <TrendValue value={formatPercent(row.expected_return_avg)} change={row.expected_return_wow} />,
+            },
+            { key: "description", header: "Description", render: (row) => row.title },
+            {
+              key: "return_model",
+              header: "Return model",
+              render: (row) => row.instrument_type === "revenue_share" ? "Share of creator revenue" : "Project-based return",
+            },
+            {
+              key: "engagement",
+              header: (
+                <InfoTooltip
+                  label="Engagement"
+                  content="Engagement is calculated from likes, comments, and shares relative to total audience across supported creator platforms. It helps show how responsive and monetizable the audience is."
+                />
+              ),
+              render: (row) => (
+                <TrendValue
+                  value={formatPercent(row.engagement_rate)}
+                  change={row.engagement_wow}
                 />
               ),
             },
-            { header: "Creator", render: (row) => <Link to={`/creators/${row.slug}`}>{row.name}</Link> },
-            { header: "Category", render: (row) => row.category },
-            { header: "Audience", render: (row) => formatNumber(row.total_audience) },
-            { header: "30d growth", render: (row) => formatPercent(row.growth_30d) },
-            { header: "Engagement", render: (row) => formatPercent(row.engagement_rate) },
-            { header: "Sponsors", render: (row) => row.detected_sponsored_posts },
+            {
+              key: "capital_raised",
+              header: "Capital raised",
+              render: (row) => `$${formatNumber(row.capital_raised)}`,
+            },
           ]}
         />
       ) : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {query.data?.items.map((creator) => <CreatorCard key={creator.id} creator={creator} />)}
+          {paginatedItems.map((opportunity) => (
+            <OpportunityCard
+              key={opportunity.id}
+              opportunity={opportunity}
+              onSelect={(item) => setSelectedOpportunity(item)}
+            />
+          ))}
         </div>
       )}
+      {totalItems > ITEMS_PER_PAGE ? (
+        <div className="flex flex-col gap-4 rounded-2xl border border-border bg-panel/80 p-4 text-sm md:flex-row md:items-center md:justify-between">
+          <p className="text-muted">
+            Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1}-{Math.min(currentPage * ITEMS_PER_PAGE, totalItems)} of {totalItems} opportunities
+          </p>
+          <div className="flex items-center gap-2">
+            <Button variant="secondary" disabled={currentPage === 1} onClick={() => changePage(currentPage - 1)}>
+              Previous
+            </Button>
+            <div className="rounded-xl border border-border px-4 py-2 text-white">
+              Page {currentPage} of {totalPages}
+            </div>
+            <Button variant="secondary" disabled={currentPage === totalPages} onClick={() => changePage(currentPage + 1)}>
+              Next
+            </Button>
+          </div>
+        </div>
+      ) : null}
+      <OpportunitySheet
+        opportunity={selectedOpportunity}
+        onClose={() => setSelectedOpportunity(null)}
+      />
     </div>
   );
 }

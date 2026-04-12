@@ -673,6 +673,552 @@ The MVP is successful if:
 - real money rails and legal structure
 - investor profiles and multi-user auth
 
+## Product Expansion Notes
+
+These are product updates and design directions that should shape the next implementation pass.
+
+### 1. Watchlist behavior
+
+Current issue:
+
+- creators added from discovery are not reliably visible in the watchlist experience
+
+Plan update:
+
+- make watchlist state first-class rather than incidental UI state
+- decide whether watchlist should live in local storage, backend storage, or both
+- ensure the same watchlist source is used by discovery cards, creator profile actions, and the watchlist page
+- add a visible watchlist count in navigation
+- make watchlist entries render with the same core creator-card data as discovery
+- add empty-state guidance explaining how to add creators into the watchlist
+
+Preferred product behavior:
+
+- clicking `Add to watchlist` should immediately update the button state
+- the creator should appear in the watchlist tab without refresh ambiguity
+- the watchlist page should support the same filters and sort controls as discovery
+
+### 2. What investors get in return
+
+This needs to be explicitly defined in the product. Right now simulated investing exists, but the return mechanism is under-specified.
+
+The product should choose and communicate one primary return model for the MVP.
+
+Updated decision:
+
+- remove the stock-like creator share framing from the core product
+- move the product toward two concrete investment primitives:
+  - revenue-share investing
+  - project-based financing
+
+#### Option A: Revenue-share model `Chosen`
+
+- investors back a creator or creator project
+- investors receive a modeled share of future revenue for a time window
+- return is displayed as projected payout relative to capital invested
+
+Good for product clarity because:
+
+- it feels close to real finance
+- it gives the portfolio page a reason to show projected return
+- it works well with brand deals, merch launches, memberships, and digital products
+
+#### Option B: Project financing model `Chosen`
+
+- investors fund a specific creator campaign like a merch drop, podcast season, or content sprint
+- return comes from the modeled performance of that specific project
+
+Good for explainability because:
+
+- users understand what they are funding
+- expected outcome and payback are easier to narrate
+
+Recommended product decision:
+
+- for the next product version, center the product around:
+  - backing a creator's future revenue stream
+  - funding specific creator projects
+- remove the synthetic stock-like framing from the main UX
+- keep transparent market-style analytics, but use them for underwriting real deal opportunities rather than pricing pseudo-shares
+
+### 3. Custom investment amounts
+
+Current limitation:
+
+- the investment flow only supports fixed amounts
+
+Plan update:
+
+- add a custom amount field alongside preset ticket sizes
+- define valid min and max amounts for the MVP
+- add inline validation and formatted currency input
+- let the user see how the entered amount maps to simulated exposure
+- update the confirmation UI so it shows:
+  - amount invested
+  - current index or entry price
+  - units or exposure purchased
+
+Preferred UX:
+
+- presets stay for speed
+- custom amount input is available for more serious investor behavior
+- amount entry should feel closer to a funding commitment ticket than a donation prompt
+
+### 4. Portfolio returns
+
+Current gap:
+
+- the portfolio page shows invested capital but not return
+
+Plan update:
+
+- define return in terms of payout participation, project performance, and expected distributions
+- stop centering the portfolio around mark-to-market price changes
+- show what has been returned so far versus what is still expected
+
+For revenue-share positions:
+
+- amount invested
+- percentage of revenue share pool or contract participation
+- total distributed so far
+- next expected payout
+- expected total return range
+- remaining term or payout period
+
+For project-finance positions:
+
+- amount invested
+- project funded
+- project status
+- capital returned so far
+- projected payout at completion
+- realized and unrealized return
+- milestone progress
+
+Minimum return metrics to add:
+
+- total invested
+- total returned so far
+- outstanding expected return
+- realized return
+- expected total return
+- best-performing deal
+- most at-risk deal
+
+Position-level metrics:
+
+- amount invested
+- instrument type
+  - revenue share
+  - project finance
+- creator name
+- project name if applicable
+- amount returned so far
+- projected remaining return
+- expected total payout
+- realized return
+- total return percentage
+- status
+
+### 5. Larger creator dataset
+
+Current limitation:
+
+- the seeded creator set is too small to make discovery, watchlists, and comparison feel market-like
+
+Plan update:
+
+- expand from a small demo set to a broader seeded market
+- target 25-50 creators for the next product pass
+- increase category coverage:
+  - music
+  - fashion
+  - gaming
+  - podcasts
+  - education
+  - fitness
+  - film
+  - sports
+  - food
+  - beauty
+  - finance
+- ensure varied audience sizes:
+  - early creators
+  - mid-tier creators
+  - breakout creators
+- ensure varied monetization histories:
+  - high sponsor density
+  - low sponsor density
+  - strong owned audience
+  - launch-heavy creators
+
+Data realism goals:
+
+- enough names to make filtering feel real
+- enough performance variance to make rankings meaningful
+- enough sponsor diversity to support monetization analysis
+
+### 6. Forum-style index and methodology view
+
+The screenshot points toward a much stronger product surface that is closer to Forum.
+
+The creator profile should still include a strong chart and methodology module, but it should support deal underwriting rather than pseudo-stock ownership.
+
+The updated chart module should be used to answer:
+
+- why this creator is financeable
+- why this project is investable
+- which signals are improving or deteriorating
+- how the projected return story is formed
+
+The creator or deal page should eventually include a dedicated chart module with:
+
+- time-range toggles
+  - `1D`
+  - `1W`
+  - `1M`
+  - `1Y`
+  - `ALL`
+- view toggles
+  - `Index`
+  - `Price`
+  - `Funding`
+- a smooth line chart with soft area fill
+- a methodology breakdown table beneath the chart
+
+This chart module should become the centerpiece of the creator page.
+
+#### 6a. Revenue view
+
+Purpose:
+
+- show creator revenue-related momentum over time
+
+Possible inputs:
+
+- cross-platform engagement
+- audience growth
+- sponsor activity
+- owned audience momentum
+- monetization events
+
+Display:
+
+- current revenue signal
+- time-range change
+- trend line
+- source contribution breakdown
+
+#### 6b. Project return view
+
+Purpose:
+
+- show expected return profile for a specific financed project
+
+Display:
+
+- projected payout curve
+- capital deployed
+- expected payback timing
+- milestone-linked return assumptions
+
+#### 6c. Funding view
+
+Purpose:
+
+- show investor participation and funding activity around a creator or creator project
+
+Display ideas:
+
+- total capital simulated into the creator
+- number of backers
+- funding velocity over time
+- latest positions or rounds
+
+### 7. Source methodology breakdown table
+
+Inspired by the screenshot, add a table under the chart showing how the creator index is built.
+
+Recommended columns:
+
+- `Source`
+- `Metrics`
+- `Transformation`
+- `Weighting`
+- `Total Change`
+
+Example rows for creators:
+
+- YouTube
+  - videos, views, likes, comments
+  - `ln(metric + 1)`
+  - weight percentage
+  - total contribution change
+- Instagram
+  - posts, likes, comments, saves
+  - `ln(metric + 1)`
+  - weight percentage
+  - total contribution change
+- TikTok
+  - posts, views, likes, comments, shares
+  - `ln(metric + 1)`
+  - weight percentage
+  - total contribution change
+- Newsletter
+  - sends, opens, clicks, subscriber change
+  - normalized growth + engagement mix
+  - weight percentage
+  - total contribution change
+- Brand deals
+  - detected sponsors, verified deals, repeat partners
+  - frequency and recency normalization
+  - weight percentage
+  - total contribution change
+
+This view is valuable because it makes the creator asset legible and inspectable, which is very aligned with Forum.
+
+### 8. Proposed investment instrument model
+
+To support returns, deal pages, and portfolio reporting, the next product pass should define two explicit instruments.
+
+#### Instrument A: Creator revenue-share note
+
+Users invest in:
+
+- a slice of future creator revenue over a defined window
+
+Users receive:
+
+- periodic payouts from qualifying revenue streams
+
+Qualifying revenue streams could include:
+
+- brand deals
+- memberships
+- courses
+- digital products
+- merch
+- ticketed experiences
+
+Core fields:
+
+- creator
+- raise size
+- investor pool share
+- revenue streams included
+- payout term
+- return cap if needed
+- distributions paid to date
+
+#### Instrument B: Creator project finance round
+
+Users invest in:
+
+- a specific project or campaign with a clear use of funds
+
+Users receive:
+
+- a share of project profits or project-linked payout
+
+Project examples:
+
+- merch drop
+- podcast season
+- short film
+- music release
+- tour support
+- editing team hire for output expansion
+
+Core fields:
+
+- project name
+- creator
+- funding goal
+- use of funds
+- milestones
+- expected payout model
+- distributions paid to date
+
+### 9. Return calculation direction
+
+The next iteration should define simple, explainable return systems for each instrument.
+
+#### Revenue-share return logic
+
+- investor contributes capital into a creator revenue-share pool
+- investor owns a fraction of the pool
+- eligible creator revenue is tracked over time
+- payouts are distributed proportionally
+
+Display metrics:
+
+- invested amount
+- share of revenue pool
+- cumulative eligible revenue
+- cumulative payout received
+- expected future payout
+- total return to date
+
+#### Project-finance return logic
+
+- investor contributes capital into a project round
+- project performance determines payout size
+- return is linked to project revenue or profit milestones
+
+Display metrics:
+
+- invested amount
+- project status
+- revenue generated so far
+- cost recovery progress
+- payout received
+- projected remaining payout
+- expected final return
+
+### 10. UX upgrades for creator investing clarity
+
+Add explicit explanatory panels for:
+
+- what users are backing
+- how revenue-share or project payout works
+- what return means in the simulation or modeled contract
+- how sponsor activity affects creator value
+
+Recommended additions to creator page:
+
+- `What you are investing in`
+- `How payouts work`
+- `Revenue streams included`
+- `Project use of funds`
+- `Why this opportunity looks attractive`
+- `Source contribution`
+- `Recent monetization events`
+- `Funding activity`
+- `Return scenario explainer`
+
+### 11. Next planning pass priorities
+
+Before the next implementation round, the plan should explicitly break the work into:
+
+1. watchlist data model and persistence
+2. revenue-share and project-finance instrument design
+3. custom investment ticket UX
+4. payout-based portfolio return calculation
+5. expanded seed dataset
+6. Forum-style chart and methodology table
+7. sidebar and modal layout fixes
+8. discovery genre pills
+
+These should be treated as the next major milestone after the current MVP.
+
+### 12. Discovery and creator-detail UX corrections
+
+These changes should guide the next implementation pass and replace weaker interaction patterns that currently make the product feel less polished.
+
+#### 12a. Remove sidebar investment CTA
+
+Current issue:
+
+- the detail sidebar includes a `Back this opportunity` CTA that adds clutter and duplicates the primary investment action already available on the deeper creator page
+
+Plan update:
+
+- remove the `Back this opportunity` action from the sidebar entirely
+- reposition the sidebar as a lightweight diligence preview rather than a full transaction surface
+- keep the sidebar focused on:
+  - opportunity summary
+  - funding goal and capital raised
+  - payout timeline
+  - what the investor is funding
+  - what the investor gets back
+  - `Know more`
+  - `Close`
+
+Preferred UX:
+
+- opening the sidebar should feel like a quick read-only preview
+- actual commitment should happen on the creator or opportunity detail surface, not in the preview layer
+
+#### 12b. Fit the investment confirmation popup properly
+
+Current issue:
+
+- the investment popup can overflow the viewport and does not feel contained on shorter laptop screens or smaller browser heights
+
+Plan update:
+
+- constrain modal height to the visible viewport
+- ensure the popup is vertically centered when space allows
+- add internal scrolling inside the modal body rather than page-level overflow
+- leave sufficient spacing from top and bottom edges on smaller screens
+- verify stacking order relative to the sticky navbar and sidebar sheet
+
+Implementation direction:
+
+- set a max-height based on viewport height
+- add a scrollable inner content container
+- keep the title and primary confirmation controls visible and easy to reach
+- validate behavior on desktop and mobile breakpoints
+
+#### 12c. Replace the creator asset tile with relevant graphs
+
+Current issue:
+
+- the current creator asset tile does not communicate investor-relevant information clearly and feels more decorative than analytical
+
+Plan update:
+
+- remove the current asset tile treatment from the creator page
+- replace it with graph modules tied to the actual investment story
+
+Recommended graph modules:
+
+- engagement trend over time
+- capital raised versus funding goal
+- projected payouts versus payouts returned to date
+- revenue-stream contribution mix
+- platform contribution or methodology breakdown
+
+Preferred graph behavior:
+
+- each chart should answer a specific investor question
+- charts should use the same restrained Forum-like visual language
+- charts should avoid fake market pricing if the product is now centered on revenue share and project finance
+
+#### 12d. Use pills for genre filtering instead of a dropdown
+
+Current issue:
+
+- genre selection is hidden in a dropdown, which makes discovery feel slower and less market-like
+
+Plan update:
+
+- replace the discovery page category dropdown with pill-style filter tags
+- keep pills horizontally scannable and wrap them cleanly on smaller screens
+- show active, hover, and reset states clearly
+- preserve URL-backed filter state so sharing and refresh still work
+
+Preferred genre pill set:
+
+- `All`
+- `Fashion`
+- `Music`
+- `Education`
+- `Gaming`
+- `Podcasts`
+- `Fitness`
+- `Beauty`
+- `Finance`
+- `Food`
+- `Sports`
+- `Film`
+
+Interaction notes:
+
+- clicking a pill should immediately refresh the discovery results
+- the selected pill should remain obvious in both light and dark contrast conditions
+- the pill row should feel closer to market tabs than social tags
+
 ## Immediate Build Order
 
 1. Set up `backend/` and `frontend/`
@@ -1032,3 +1578,532 @@ This section is the working checklist for the full MVP. It is intentionally deta
 - [x] Add import scripts for real public content data.
 - [x] Add a richer sponsor timeline visualization.
 - [x] Add market-style table view toggle on discovery page.
+
+## Next Milestone Todo List
+
+This section tracks the next product pass based on the current feedback and desired Forum-style evolution.
+
+### Phase 17: Watchlist reliability and UX `Completed`
+
+- [x] Audit the current watchlist data flow from discovery cards to watchlist page.
+- [x] Decide whether watchlist state should be frontend-only, backend-backed, or hybrid.
+- [x] Unify watchlist storage so all pages read from the same source.
+- [x] Add optimistic updates for watchlist add/remove actions.
+- [x] Add watchlist count badge in the top navigation.
+- [x] Add watchlist sorting and filters.
+- [x] Add empty-state guidance and quick links back to discovery.
+
+### Phase 18: Investment return model `Completed`
+
+- [x] Choose the primary return abstraction for the product:
+  - revenue-share participation
+  - project-finance returns
+  - revenue-share simulation
+- [x] Define what investors are buying:
+  - revenue-share pool participation
+  - project financing participation
+- [x] Define entry price, current price, and current value formulas.
+- [x] Define how sponsor activity, growth, and engagement affect price movement.
+- [x] Add a plain-language explanation of how simulated returns work.
+
+### Phase 19: Custom investment amounts `Completed`
+
+- [x] Add custom investment amount input to the invest flow.
+- [x] Define minimum and maximum allowed amounts.
+- [x] Add currency formatting for custom inputs.
+- [x] Add validation and helpful error states.
+- [x] Show estimated exposure purchased before confirmation.
+- [x] Update the confirmation summary to include entry price and exposure.
+
+### Phase 20: Portfolio returns and performance `Completed`
+
+- [x] Extend the investment data model with entry-price-like fields.
+- [x] Add creator price history snapshots.
+- [x] Compute current value for each position.
+- [x] Compute total portfolio value.
+- [x] Compute unrealized profit/loss.
+- [x] Compute percent return at portfolio and position level.
+- [x] Add best and worst performer summary cards.
+- [x] Add portfolio performance chart.
+
+### Phase 21: Expanded creator market dataset `Completed`
+
+- [x] Increase seeded creators from the current small set to a larger market.
+- [x] Add more creator categories and niches.
+- [x] Add more platform combinations.
+- [x] Add richer content histories.
+- [x] Add more sponsor histories and partner diversity.
+- [x] Add a mix of mature and emerging creator profiles.
+- [x] Ensure enough records exist for comparison, watchlists, and rankings to feel real.
+
+### Phase 22: Forum-style creator chart module `Completed`
+
+- [x] Design a hero chart block for creator profiles.
+- [x] Add time-range controls:
+  - `1D`
+  - `1W`
+  - `1M`
+  - `1Y`
+  - `ALL`
+- [x] Add mode controls:
+  - `Index`
+  - `Price`
+  - `Funding`
+- [x] Add a smoothed line chart with area fill.
+- [x] Add current value and change labels above the chart.
+- [x] Ensure the visual tone is much closer to the reference screenshot.
+
+### Phase 23: Source contribution methodology table `Completed`
+
+- [x] Add a methodology table under the main chart.
+- [x] Define per-source metric lists.
+- [x] Define transformation labels like `ln(metric + 1)` or normalized growth.
+- [x] Define source weightings.
+- [x] Define source-level change contribution.
+- [x] Render positive and negative contribution states clearly.
+- [x] Make the table legible and financial-product oriented.
+
+### Phase 24: Creator asset engine `Completed`
+
+- [x] Define a creator index calculation pipeline.
+- [x] Define synthetic price calculation from creator index.
+- [x] Define funding activity calculation.
+- [x] Store historical snapshots for index, price, and funding.
+- [x] Expose new backend endpoints for chart histories and contribution rows.
+- [x] Update methodology documentation to explain the asset model clearly.
+
+### Phase 25: Creator monetization and investor return clarity `Completed`
+
+- [x] Add a dedicated `Investor Return` explainer section.
+- [x] Show what monetization channels feed the model.
+- [x] Show how brand deals affect creator cash-flow assumptions.
+- [x] Show how owned audience affects durability.
+- [x] Add scenario views for conservative, base, and upside outcomes if needed.
+- [x] Keep the copy clear enough that judges can understand the model quickly.
+
+## Revenue-Share and Project-Finance Pivot
+
+This section replaces the stock-like creator framing with clearer investment products.
+
+### Product Decision
+
+The platform should no longer center itself around:
+
+- creator stocks
+- synthetic shares as the primary user story
+- pseudo-trading language as the main explanation
+
+The platform should instead center itself around two clear instruments:
+
+1. `Creator Revenue-Share Notes`
+2. `Creator Project Finance Rounds`
+
+### New Core User Question
+
+Instead of:
+
+- "Which creator stock should I buy?"
+
+The product should answer:
+
+- "Which creator revenue stream should I back?"
+- "Which creator project should I finance?"
+
+### Updated Discovery Layer
+
+Discovery should rank and filter actual opportunities, not only creators.
+
+Recommended discovery object types:
+
+- revenue-share opportunities
+- project-finance opportunities
+- creator profiles with active funding offers
+
+Recommended filters:
+
+- instrument type
+- creator category
+- payout timeline
+- revenue stream type
+- funding status
+- capital raised
+- expected return range
+
+### Updated Creator / Deal Pages
+
+Each investment page should clearly show:
+
+- what the investor is funding
+- what revenue streams are included
+- how returns are generated
+- what has been paid back so far
+- what is projected next
+
+For revenue-share pages, show:
+
+- creator
+- raise amount
+- revenue streams covered
+- share available to investors
+- payout schedule
+- historical monetization context
+
+For project-finance pages, show:
+
+- project name
+- creator
+- funding goal
+- use of funds
+- milestones
+- projected revenue
+- projected payout schedule
+
+### Updated Portfolio Design
+
+Portfolio should feel like a private markets or venture-income dashboard rather than a stock portfolio.
+
+Top-line portfolio metrics:
+
+- total invested
+- total returned so far
+- outstanding expected payout
+- realized return
+- expected total return
+- active deals
+- completed deals
+
+Position rows should show:
+
+- instrument type
+- creator
+- project or revenue-share name
+- invested amount
+- capital returned
+- projected remaining payout
+- total expected payout
+- realized return percentage
+- status
+
+### UI Copy Direction
+
+Use terms like:
+
+- `Back`
+- `Fund`
+- `Revenue share`
+- `Project finance`
+- `Payout`
+- `Capital returned`
+- `Expected return`
+- `Funding goal`
+
+Avoid centering terms like:
+
+- `buy shares`
+- `trade creator stock`
+- `price appreciation` as the main user explanation
+
+### New Planning Phases
+
+#### Phase 26: Remove creator-stock framing `Completed`
+
+- [x] remove stock-like terminology from core UI
+- [x] remove pseudo-trading language from invest flow
+- [x] replace synthetic-share explanations with instrument-specific copy
+- [x] update methodology and landing page language
+
+#### Phase 27: Revenue-share instrument design `Completed`
+
+- [x] define the exact revenue-share contract abstraction for the MVP
+- [x] define eligible revenue streams
+- [x] define payout term
+- [x] define return cap or no-cap logic
+- [x] define investor participation math
+
+#### Phase 28: Project-finance instrument design `Completed`
+
+- [x] define project types supported in the MVP
+- [x] define milestone and use-of-funds structure
+- [x] define payout logic for completed vs active projects
+- [x] define status system for project lifecycle
+
+#### Phase 29: Opportunity-first discovery `Completed`
+
+- [x] redesign discovery around opportunities instead of only creator profiles
+- [x] add instrument type cards
+- [x] add expected payout and funding progress on cards
+- [x] support switching between creator and opportunity views
+
+#### Phase 30: Payout-first portfolio `Completed`
+
+- [x] redesign portfolio around payouts and expected returns
+- [x] show capital returned so far
+- [x] show projected remaining payout
+- [x] show realized vs projected return
+- [x] support filtering by instrument type and status
+
+#### Phase 31: Investment confirmation UX `Completed`
+
+- [x] add a confirmation modal before submitting any investment
+- [x] show instrument type, creator or project name, amount, and payout summary in the confirmation step
+- [x] require an explicit confirm action before capital is committed
+- [x] show a success toast after confirmation
+- [x] include a direct path from the toast to the portfolio or active deal view
+
+## Discovery Table UX Revision
+
+This section captures the next round of discovery and terminology refinements. These changes are not implemented yet and should guide the next implementation pass.
+
+### Product decisions
+
+- remove the compare feature entirely
+- make table view the default discovery experience
+- treat the discovery table as the primary underwriting surface
+- use clearer, less financial-jargon-heavy labels in the UI
+
+### Terminology changes
+
+Replace current labels as follows:
+
+- `instrument type` -> `return model`
+- `revenue_share` -> plain-English label such as `Share of creator revenue`
+- `project_finance` -> plain-English label such as `Project-based return`
+- `opportunity` -> `description`
+
+These terms should be updated consistently across:
+
+- discovery table
+- sidebar detail view
+- creator page
+- investment modal
+- portfolio page
+- methodology content where relevant
+
+### Table defaults
+
+The discovery page should:
+
+- open in table view by default
+- no longer prioritize card view as the primary mode
+- still optionally preserve card view only if it remains useful, but the default must be table
+
+### Remove compare
+
+The compare feature should be removed from:
+
+- navigation
+- discovery controls
+- related routes
+- supporting table actions
+- any residual copy or internal state
+
+### Table column order
+
+The discovery table should be reordered to:
+
+1. `Creator`
+2. `Expected return`
+3. `Description`
+
+Then supporting columns after that, such as:
+
+- `Return model`
+- `Funding goal`
+- `Capital raised`
+- `Payout timeline`
+
+### Creator interaction in table
+
+Clicking the creator cell in the table should no longer immediately navigate away.
+
+New desired behavior:
+
+- clicking a creator opens a right-side detail sidebar
+- the sidebar shows more details of the investment description
+- the sidebar clearly explains:
+  - what the investor is funding
+  - return model
+  - expected return
+  - payout timeline
+  - use of funds
+  - revenue streams or project basis
+- the sidebar should include a `Know more` button
+- `Know more` should open the full creator metrics page
+
+This allows the user to:
+
+- inspect the investment from the table
+- drill into creator analytics only when needed
+
+### Expected return display
+
+The table should no longer show a range as the primary return number.
+
+Updated requirement:
+
+- average the expected return range into one displayed value
+- if backend still stores min/max, compute a midpoint for display
+- optionally show the range inside the sidebar or tooltip
+
+Example:
+
+- if min is `18%` and max is `34%`
+- show `26%` in the main table
+- show the range and explanation in detail view
+
+### Week-on-week arrows
+
+All numerical columns where trend applies should visually indicate direction.
+
+Requirements:
+
+- use up/down arrows for week-on-week movement
+- apply to relevant numeric columns such as:
+  - expected return
+  - funding progress
+  - creator growth
+  - engagement
+  - capital raised momentum if available
+- the arrow should indicate trend direction, not replace the actual number
+
+Example display:
+
+- `26% ↑`
+- `$42K ↓`
+
+### Engagement tooltip
+
+The engagement column should include an information tooltip.
+
+Tooltip content should explain:
+
+- what engagement means in this product
+- how it is calculated
+- why it matters for underwriting
+
+Suggested wording direction:
+
+- “Engagement is calculated from likes, comments, and shares relative to total audience across supported platforms.”
+
+### Expected return tooltip
+
+The expected return column should include an information tooltip explaining how it is derived.
+
+Tooltip should explain:
+
+- whether the displayed number is an average of a modeled range
+- what assumptions affect it
+- how payout expectations differ between return models
+
+Suggested content direction:
+
+- for revenue-share:
+  - expected creator revenue
+  - investor participation share
+  - payout window
+- for project-based return:
+  - project revenue assumptions
+  - cost recovery
+  - payout at completion or milestones
+
+### Sidebar content requirements
+
+The discovery sidebar should show:
+
+- creator name
+- description title
+- return model in plain-English terms
+- average expected return
+- full expected return range
+- funding goal
+- capital raised
+- payout timeline
+- what the investor is funding
+- what the investor receives back
+- key revenue streams
+- use of funds
+- status
+- `Know more` button to open creator metrics page
+
+### Creator page role after this change
+
+The creator metrics page should become:
+
+- the deep diligence page
+- where all creator analytics, brand deals, monetization history, and methodology details live
+
+The discovery sidebar should become:
+
+- the quick decision layer
+
+### New implementation phases
+
+#### Phase 32: Discovery table simplification `Completed`
+
+- [x] remove compare feature from routes, nav, UI, and state
+- [x] set table view as the default discovery mode
+- [x] reorder the discovery table columns
+- [x] move creator to the first column
+- [x] move expected return to the second column
+- [x] move description to the third column
+
+#### Phase 33: Terminology cleanup `Completed`
+
+- [x] rename `instrument type` to `return model`
+- [x] rename raw instrument values into layman-friendly labels
+- [x] rename `opportunity` to `description`
+- [x] update labels across discovery, creator page, portfolio, investment modal, and methodology
+
+#### Phase 34: Trend arrows and table clarity `Completed`
+
+- [x] add week-on-week directional arrows to relevant numeric columns
+- [x] define which backend metrics should power those arrows
+- [x] ensure arrows and numeric values are shown together
+- [x] keep the styling compact and easy to scan in table view
+
+#### Phase 35: Discovery tooltips `Completed`
+
+- [x] add engagement info tooltip with formula and rationale
+- [x] add expected return info tooltip with methodology explanation
+- [x] ensure tooltips are concise and readable
+- [x] keep tooltip content aligned with the methodology page
+
+#### Phase 36: Average expected return presentation `Completed`
+
+- [x] compute average expected return for primary table display
+- [x] preserve min/max return in detailed sidebar content
+- [x] standardize return formatting across table, sidebar, and portfolio
+
+#### Phase 37: Sidebar-first creator drill-in `Completed`
+
+- [x] make creator cell open a right-side sidebar instead of direct navigation
+- [x] populate sidebar with investment description details
+- [x] add `Know more` CTA to open the full creator metrics page
+- [x] ensure sidebar content is rich enough for fast underwriting
+
+#### Phase 38: Sidebar and modal UX corrections `Completed`
+
+- [x] remove `Back this opportunity` from the sidebar
+- [x] keep the sidebar as a read-only diligence preview
+- [x] constrain the investment popup to the viewport height
+- [x] add internal scroll behavior to the investment popup instead of page overflow
+- [x] verify popup layout against the sticky navbar and right-side sheet
+- [x] verify the popup works on shorter laptop screens and mobile breakpoints
+
+#### Phase 39: Creator detail visualization overhaul `Completed`
+
+- [x] remove the current creator asset tile that does not map to the investment story
+- [x] replace it with investor-relevant graph modules
+- [x] add a chart for engagement trend over time
+- [x] add a chart for capital raised versus funding goal
+- [x] add a chart for payouts returned to date versus projected payouts
+- [x] add a chart or table for revenue-stream or platform contribution breakdown
+- [x] keep the chart language aligned with revenue-share and project-finance products rather than pseudo-stock pricing
+
+#### Phase 40: Discovery genre filter pills `Completed`
+
+- [x] replace the genre dropdown with pill-style category filters
+- [x] keep the active pill state in the URL query params
+- [x] support wrap behavior for pills on smaller screens
+- [x] style pills to feel close to financial market tabs rather than social tags
+- [x] preserve existing discovery filtering behavior for `All` and each category

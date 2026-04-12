@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
 
+import { useWatchlist } from "../contexts/watchlist-context";
 import { formatNumber, formatPercent } from "../lib/utils";
 import type { CreatorCard as CreatorCardType } from "../types/api";
-import { useWatchlist } from "../hooks/use-watchlist";
 import { PlatformBadge } from "./platform-badge";
 import { WatchlistButton } from "./watchlist-button";
 import { Card } from "./ui/card";

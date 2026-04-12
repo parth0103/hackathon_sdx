@@ -1,16 +1,20 @@
 from sqlmodel import Session, select
 
 from app.models.entities import BrandDeal, ContentItem, Creator, CreatorPlatform
+from app.services.market import build_chart_series, build_market_snapshot
 from app.schemas.creator import (
     BrandDealResponse,
+    ChartSeriesPointResponse,
     ContentItemResponse,
     CreatorCardResponse,
     CreatorDetailResponse,
     CreatorQueryResponse,
     GrowthPointResponse,
     MonetizationItemResponse,
+    OpportunitySummaryResponse,
     PlatformMetricsResponse,
 )
+from app.services.opportunities import list_opportunities
 
 MONETIZATION_HISTORY: dict[str, list[MonetizationItemResponse]] = {
     "maya-vale": [
@@ -181,6 +185,17 @@ def get_creator_detail(session: Session, slug: str) -> CreatorDetailResponse | N
     total_audience = _total_audience(platforms)
     growth_30d = _growth_30d(platforms)
     engagement_rate = _engagement_rate(platforms)
+    snapshot = build_market_snapshot(platforms, brand_deals)
+    chart_series = build_chart_series(
+        snapshot.current_index,
+        snapshot.current_price,
+        snapshot.current_funding,
+    )
+    opportunity_items = [
+        OpportunitySummaryResponse(**item.__dict__)
+        for item in list_opportunities(session, None, creator.category, None, "expected_return")
+        if item.creator_slug == creator.slug
+    ]
 
     audience_growth = [
         GrowthPointResponse(label="90d", value=round(growth_30d * 0.48, 2)),
@@ -256,4 +271,24 @@ def get_creator_detail(session: Session, slug: str) -> CreatorDetailResponse | N
         audience_growth=audience_growth,
         engagement_trend=engagement_trend,
         monetization_history=MONETIZATION_HISTORY.get(creator.slug, []),
+        current_index=snapshot.current_index,
+        current_price=snapshot.current_price,
+        current_funding=snapshot.current_funding,
+        chart_series={
+            mode: {
+                timeframe: [
+                    ChartSeriesPointResponse(label=point.label, value=point.value)
+                    for point in points
+                ]
+                for timeframe, points in series.items()
+            }
+            for mode, series in chart_series.items()
+        },
+        source_contributions=snapshot.source_contributions,
+        investor_return_model=[
+            "Revenue-share notes return payouts from eligible creator revenue over the note term.",
+            "Project-finance rounds return capital as the funded launch or production generates revenue.",
+            "Brand deals and owned audience improve confidence in payout durability and follow-on monetization.",
+        ],
+        active_opportunities=opportunity_items,
     )

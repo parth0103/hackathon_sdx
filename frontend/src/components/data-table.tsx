@@ -3,7 +3,8 @@ import type { PropsWithChildren, ReactNode } from "react";
 import { Card } from "./ui/card";
 
 type Column<T> = {
-  header: string;
+  header: ReactNode;
+  key: string;
   render: (row: T) => ReactNode;
 };
 
@@ -20,7 +21,7 @@ export function DataTable<T>({ columns, rows }: PropsWithChildren<DataTableProps
           <thead className="bg-white/[0.03] text-left text-muted">
             <tr>
               {columns.map((column) => (
-                <th key={column.header} className="px-4 py-3 font-medium">
+                <th key={column.key} className="px-4 py-3 font-medium">
                   {column.header}
                 </th>
               ))}
@@ -30,7 +31,7 @@ export function DataTable<T>({ columns, rows }: PropsWithChildren<DataTableProps
             {rows.map((row, index) => (
               <tr key={index} className="border-t border-border">
                 {columns.map((column) => (
-                  <td key={column.header} className="px-4 py-3 text-white">
+                  <td key={column.key} className="px-4 py-3 text-white">
                     {column.render(row)}
                   </td>
                 ))}

@@ -1,12 +1,23 @@
-import { useEffect, useMemo, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type PropsWithChildren,
+} from "react";
 
 const STORAGE_KEY = "creator-market-watchlist";
 
-export function useWatchlist(): {
+type WatchlistContextValue = {
   items: string[];
   has: (slug: string) => boolean;
   toggle: (slug: string) => void;
-} {
+};
+
+const WatchlistContext = createContext<WatchlistContextValue | null>(null);
+
+export function WatchlistProvider({ children }: PropsWithChildren): JSX.Element {
   const [items, setItems] = useState<string[]>([]);
 
   useEffect(() => {
@@ -20,7 +31,7 @@ export function useWatchlist(): {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
   }, [items]);
 
-  const api = useMemo(
+  const value = useMemo<WatchlistContextValue>(
     () => ({
       items,
       has: (slug: string) => items.includes(slug),
@@ -35,5 +46,13 @@ export function useWatchlist(): {
     [items],
   );
 
-  return api;
+  return <WatchlistContext.Provider value={value}>{children}</WatchlistContext.Provider>;
+}
+
+export function useWatchlist(): WatchlistContextValue {
+  const context = useContext(WatchlistContext);
+  if (context === null) {
+    throw new Error("useWatchlist must be used within WatchlistProvider");
+  }
+  return context;
 }
